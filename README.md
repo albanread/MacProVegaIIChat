@@ -173,7 +173,7 @@ producing wrong output.
 
 ## Models
 
-Eight are offered, with a tick beside the ones already on this Mac. Speeds are what was
+Seven are offered, with a tick beside the ones already on this Mac. Speeds are what was
 actually measured on a Radeon Pro Vega II; where nobody has timed one the app says so
 rather than inventing a figure.
 
@@ -183,18 +183,22 @@ rather than inventing a figure.
 | Qwen3 4B `Q4_K_M` | 2.5 GB | 4 GB | — |
 | Qwen3 8B `Q4_K_M` | 5.0 GB | 7 GB | 46.9 tok/s |
 | Qwen3 14B `Q4_K_M` | 9.0 GB | 12 GB | — |
-| Gemma 3 12B `Q6_K` | 9.7 GB | 13 GB | 20.6 tok/s |
 | Gemma 4 26B-A4B `QAT UD-Q4_K_XL` | 14.2 GB | 17 GB | — |
 | Qwen3 30B-A3B `Q4_K_M` | 18.6 GB | 22 GB | 51.9 tok/s |
 | Qwen3 32B `Q4_K_M` | 19.8 GB | 24 GB | — |
 
 **The useful thing those numbers say:** on this card, the biggest download is also very
 nearly the fastest. Qwen3 30B-A3B runs at 51.9 tok/s — within a whisker of a 3B model —
-because only about 3B of its parameters are active per token. A dense 12B is less than
-half that speed. So the advice on a 32 GB card is not "pick something small to keep it
+because only about 3B of its parameters are active per token. A dense 12B managed 20.6
+tok/s on the same card — less than half the speed for a third of the size. So the advice on a 32 GB card is not "pick something small to keep it
 quick"; it is "take the mixture-of-experts model, it is both the best and the fastest".
 The app orders the list by size but opens on the quickest model you already have that
 fits.
+
+A Gemma 3 12B was measured here too, and is deliberately not offered: it invented things
+in testing on this machine often enough to be untrustworthy for reading documents, which
+is most of what this app is for. Its speed figure is quoted above only because it is a
+useful measurement of the card.
 
 Gemma 4's 26B-A4B is the other mixture-of-experts option, and it is offered **only** as
 `unsloth/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL` — the quantisation-aware build. That is

@@ -75,11 +75,6 @@ static NSArray<ModelSpec *> *Catalogue(void) {
                    f:@"Qwen3-14B-Q4_K_M.gguf"
                    u:@"https://huggingface.co/Qwen/Qwen3-14B-GGUF/resolve/main/Qwen3-14B-Q4_K_M.gguf"
                    g:9.0 v:12.0 t:0],
-        [ModelSpec n:@"Gemma 3 12B"
-                   b:@"careful and well-spoken, but slower than the rest"
-                   f:@"google_gemma-3-12b-it-Q6_K.gguf"
-                   u:@"https://huggingface.co/bartowski/google_gemma-3-12b-it-GGUF/resolve/main/google_gemma-3-12b-it-Q6_K.gguf"
-                   g:9.7 v:13.0 t:20.6],
         [ModelSpec n:@"Gemma 4 26B-A4B"
                    b:@"quick for its size; a little looser than the Qwen 30B"
                    f:@"gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf"
