@@ -13,6 +13,12 @@ Download a model, press Start, and talk to it. Hand it a document to read, or as
 write one. Everything happens on the machine — no account, no sign-in, and nothing you
 type or open ever leaves it.
 
+### [⬇︎ Download MacVegaII Chat 0.2.0](https://github.com/albanread/MacProVegaIIChat/releases/latest)
+
+Signed and notarised, about 5 MB. Drag it to Applications and open it — macOS will not
+argue with you. The models are downloaded from inside the app, once, and after that it
+never needs the internet again.
+
 ![minimum macOS 13.0](https://img.shields.io/badge/macOS-13.0%2B-lightgrey) ![x86_64](https://img.shields.io/badge/arch-x86__64-blue) ![licence MIT](https://img.shields.io/badge/licence-MIT-blue)
 
 ![The main window, with a document attached and summarised](docs/main-light.png)
