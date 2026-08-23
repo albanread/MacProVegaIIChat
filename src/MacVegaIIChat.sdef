@@ -157,6 +157,12 @@
       <cocoa class="MVClosePanelCommand"/>
     </command>
 
+    <command name="note" code="MVgAnote"
+             description="Write a line into the transcript, as the app writes its own asides.">
+      <cocoa class="MVNoteCommand"/>
+      <direct-parameter type="text"/>
+    </command>
+
     <command name="resize" code="MVgAsize"
              description="Set a window's size, for composing screenshots and checking layout.">
       <cocoa class="MVResizeCommand"/>

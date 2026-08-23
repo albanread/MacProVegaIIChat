@@ -309,6 +309,21 @@ static MVTask *MVTaskNamed(NSString *name) {
 }
 @end
 
+#pragma mark - Captions
+
+// Writes a line into the transcript in the same grey the app uses for its own
+// asides. Meant for demos and for scripts that want to leave a marker where a
+// person will later be reading the transcript back.
+@interface MVNoteCommand : NSScriptCommand @end
+@implementation MVNoteCommand
+- (id)performDefaultImplementation {
+    NSString *t = self.directParameter;
+    if (![t isKindOfClass:[NSString class]] || !t.length) return nil;
+    [App() say:@"system" text:t];
+    return nil;
+}
+@end
+
 #pragma mark - Window size
 
 // Mostly for composing screenshots and for checking the layout holds up at

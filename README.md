@@ -1,52 +1,26 @@
 # MacVegaII Chat
 
-**A local AI for the Mac Pro (2019) with a Radeon Pro Vega II — a card that could not run
-language models at all until the fixes this is built on.**
+**A local AI for the Mac Pro (2019).**
 
-That machine has 32 GB of graphics memory sitting in it, and it was useless for this work:
-llama.cpp picked the wrong GPU on a two-card Mac Pro, and its Metal kernels assumed 32-wide
-SIMD groups where AMD's are 64-wide, so the reductions folded over the wrong lane count and
-produced fluent nonsense. [IntelMacLlamaCpp](https://github.com/albanread/IntelMacLlamaCpp)
-fixes both. This is the app that sits on top: download a model, press Start, and talk to it
-— or hand it a document to read, or ask it to write one. No account, no sign-in, no cloud.
-Nothing you type and no document you open ever leaves the machine.
+Running AI models on a Mac Pro (2019) has been awkward enough not to be worth the bother,
+which made a waste of the Radeon Pro Vega II sitting inside it and its 32 GB of graphics
+memory. This app fixes what was in the way. That machine is now supported and tested, with
+a set of specific modern models picked and measured for it. The fixes themselves live in
+[IntelMacLlamaCpp](https://github.com/albanread/IntelMacLlamaCpp), which has the full
+technical detail.
 
-On that card a Qwen3 30B-A3B answers at about 52 tokens a second. It is not a compromise.
+Download a model, press Start, and talk to it. Hand it a document to read, or ask it to
+write one. Everything happens on the machine — no account, no sign-in, and nothing you
+type or open ever leaves it.
 
 ![minimum macOS 13.0](https://img.shields.io/badge/macOS-13.0%2B-lightgrey) ![x86_64](https://img.shields.io/badge/arch-x86__64-blue) ![licence MIT](https://img.shields.io/badge/licence-MIT-blue)
 
 ![The main window, with a document attached and summarised](docs/main-light.png)
 
-### Scope, stated plainly
+### Scope
 
-Built and tested on **one machine**: a Mac Pro 7,1 with a Radeon Pro Vega II (32 GB),
-macOS 26.3. That is the whole of the evidence. It is not a claim about AMD GPUs in general,
-or even about other Vega IIs — nobody sends us hardware, so we cannot say. The fixes are
-about wave64 SIMD width rather than one specific chip, so there is reason to think they
-generalise; reason-to-think is not testing, and we are not going to dress it up as support.
-If you run it on something else, please say what happened.
-
-### Where it is up to
-
-Version 0.2.0 links llama.cpp into the app rather than spawning `llama-server`. Chat,
-document reading, drafting, the settings panel and the whole scripting interface have been
-exercised on the machine above. Still unverified at the time of writing: the launch-time
-Metal warm-up, multi-pass reading of a very long document, and the download path for the
-four models nobody has timed yet. The next rebuild is waiting on verification of the wave64
-backend work upstream.
-
-## Why this exists
-
-Stock llama.cpp does two things wrong on a Mac Pro:
-
-1. **It picks the wrong GPU.** `MTLCreateSystemDefaultDevice()` returns the GPU driving
-   your display. On a Mac Pro that is often the small card — and if it only reports
-   Metal 2, llama.cpp's Metal backend is disabled entirely and silently.
-2. **Its kernels assume 32-wide SIMD groups.** AMD GCN cards are 64-wide, so the
-   reductions fold over the wrong lane count and you get fluent nonsense.
-
-This app links a [fixed llama.cpp](https://github.com/albanread/IntelMacLlamaCpp) and
-picks the Metal device itself, so none of that is the user's problem.
+Built and tested for one machine and one graphics card: a Mac Pro (2019) with a Radeon
+Pro Vega II. Anything else is untested.
 
 ## What it does
 
@@ -168,10 +142,9 @@ copy — ad-hoc signing does not help, only Developer ID + notarisation does.
 
 ## Supported hardware
 
-The scope is [as stated at the top](#scope-stated-plainly): one Mac Pro 7,1 with a Radeon
-Pro Vega II. A different Vega II, a W5700X, a W6800X, a different macOS — all untested.
-
-One thing is worth knowing whatever card you have.
+One Mac Pro (2019) with a Radeon Pro Vega II, on macOS 26.3. A different Vega II, a
+W5700X, a W6800X, a different macOS — all untested. Nobody sends us hardware, so if you
+run it on something else, please say what happened.
 
 Cards that report only **Metal 2 cannot work at all**. The GPU backend depends on
 simdgroup reduction, which these cards expose via Metal 3; without it llama.cpp disables
