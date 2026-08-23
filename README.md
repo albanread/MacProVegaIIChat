@@ -46,13 +46,21 @@ rather than inventing a figure.
 
 ### Which one should you use?
 
-**The 30B-A3B, if your card can take it.** That is not the usual advice about big
-downloads, and it is not a close call. Of the models tested here it is the only one that
-held up on real work, and it is also nearly the fastest — only about 3B of its parameters
-are active at a time, so it answers at 52 tokens a second, within a whisker of a 3B model.
+**The 30B-A3B, or the biggest one your card will hold.**
 
-The small ones are quick and pleasant to chat with, and they are not good enough for the
-job this app is mostly for. See below.
+This is the opposite of the advice you normally get about large downloads, and it is not a
+close call. Below about 14B these models are not good enough for the work this app exists
+to do. They are fluent, they are fast, and they are wrong — confidently, and in ways you
+will not notice unless you check every line yourself, which is the work you were trying to
+avoid. What was tested and what happened is set out below.
+
+It is also not a trade against speed. Only about 3B of the 30B-A3B's parameters are active
+at any moment, so it answers at 52 tokens a second — within a whisker of a 3B model, and
+two and a half times a dense 12B. You are not paying for quality in waiting.
+
+**This is the reason a Vega II is worth having.** 32 GB of graphics memory is what lets a
+30B model sit on the card at all. On 8 GB you are stuck with the small ones, and the small
+ones are not the point.
 
 **The useful thing those numbers say:** on this card, the biggest download is also very
 nearly the fastest. Qwen3 30B-A3B runs at 51.9 tok/s — within a whisker of a 3B model —
@@ -95,8 +103,13 @@ get around to it, and that is the whole of what we can promise.
 
 ## How the models were tested
 
-These are **user tests, not benchmarks.** Each model was put through this app the way
-somebody would actually use it, and the answers were read by hand. If you want perplexity
+These are **user tests, not benchmarks.** The question being asked was a narrow one: can
+you get away with a small model? They download in a couple of minutes instead of twenty,
+they fit on any card, and they are quick. If one of them could do the work, that would be
+worth knowing.
+
+So the small ones were put through this app the way somebody would actually use it, and
+the answers were read by hand. If you want perplexity
 figures, token throughput and the kernel work underneath, that is all in
 [IntelMacLlamaCpp](https://github.com/albanread/IntelMacLlamaCpp) — this page is about
 whether a model is any good to use.
@@ -129,7 +142,6 @@ that actually costs you something.
 | Qwen3 4B | ✗ said 55 minutes, inventing "45 − 35 = 10" | ✓ | **six of seven lines were corrections that corrected nothing** |
 | Qwen3 8B | ✗ said 45 minutes, losing a lathe | ✓ | fills the list with "no mistake here" lines, and has been seen repeating one line over and over |
 | Qwen3 30B-A3B | — | ✓ | **one line, correct, nothing invented** |
-| Qwen3 14B, Gemma 4 26B-A4B, Qwen3 32B | not yet tested | | |
 
 Every small model failed the arithmetic, and each failed differently — 135 minutes, 55
 minutes, 45 minutes, where the answer is 90. Every one of them was fluent and confident
@@ -138,6 +150,10 @@ about it. None of them invented a budget, which is the one thing they all got ri
 The proofreading column is the one to read. A list of corrections where the correction is
 the same as the original looks like a model doing its job, and it is the sort of thing you
 only catch by reading every line — which is the work you were trying to avoid.
+
+The larger models were not put through the same battery, and there is no plan to. The
+exercise was to find out whether a small model could stand in for one, and the answer came
+back clearly enough that measuring the obvious would be a waste of the card.
 
 **The honest summary: below about 14B, use it to chat and do not trust it with your
 documents.**
@@ -237,12 +253,27 @@ One Mac Pro (2019) with a Radeon Pro Vega II, on macOS 26.3. A different Vega II
 W5700X, a W6800X, a different macOS — all untested. Nobody sends us hardware, so if you
 run it on something else, please say what happened.
 
-Cards that report only **Metal 2 cannot work at all**. The GPU backend depends on
-simdgroup reduction, which these cards expose via Metal 3; without it llama.cpp disables
-almost every kernel. The Radeon Pro 580X fitted to many Mac Pros is such a card, so on a
-machine with both, the app must pick the Vega II — which is exactly what it does. If the
-best available GPU is not Metal 3 capable, the app says so on launch rather than
-producing wrong output.
+### The Radeon Pro 580X, and why you want one anyway
+
+A card that reports only **Metal 2 cannot run any of this**. The arithmetic depends on
+simdgroup reduction, which these cards expose only via Metal 3, and without it llama.cpp
+disables almost every kernel. The Radeon Pro 580X fitted to a great many Mac Pros is one
+of these. It will never work as a compute card, and no amount of work on this end changes
+that.
+
+**Fit one anyway, and let it drive your screens.** Then the Vega II is doing nothing but
+the model — the whole 32 GB, with no framebuffer and no window server taking a slice out
+of it. The two-card arrangement is better than one card doing both jobs, not a compromise
+on the way to something better.
+
+That is also the cheap way in. A 580X is about the only Mac Pro graphics card still going
+on eBay for sensible money, so "cheap card for the display, Vega II for the work" costs
+very little to arrange.
+
+The app already knows which is which. Stock llama.cpp takes whichever GPU is driving the
+display — on this exact setup, precisely the wrong one, and it fails silently. This app
+walks the list itself, picks the Metal 3 card with the most memory, and tells you on
+launch if the best card it can find will not do.
 
 ## Limitations
 
