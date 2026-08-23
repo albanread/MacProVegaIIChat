@@ -5,3 +5,6 @@ build/
 
 # macOS
 .DS_Store
+
+# local only — signing notes are not public
+SIGNING.md

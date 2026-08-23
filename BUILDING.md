@@ -63,9 +63,9 @@ system frameworks, about 10 MB.
 ./makedmg.sh          # produces MacVegaIIChat-<version>.dmg
 ```
 
-Sign it before you give it to anyone — see [SIGNING.md](SIGNING.md). Unsigned, macOS
-**SIGKILLs** a downloaded copy, and ad-hoc signing does not help. Only Developer ID plus
-notarisation does.
+Sign it before you give it to anyone. Unsigned, macOS **SIGKILLs** a downloaded copy,
+and ad-hoc signing does not help — only a Developer ID signature plus notarisation by
+Apple does.
 
 ## Checking it works
 
