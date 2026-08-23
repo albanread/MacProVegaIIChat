@@ -184,7 +184,7 @@ rather than inventing a figure.
 | Qwen3 8B `Q4_K_M` | 5.0 GB | 7 GB | 46.9 tok/s |
 | Qwen3 14B `Q4_K_M` | 9.0 GB | 12 GB | — |
 | Gemma 3 12B `Q6_K` | 9.7 GB | 13 GB | 20.6 tok/s |
-| Gemma 4 26B-A4B `QAT Q4_K_XL` | 14.2 GB | 17 GB | — |
+| Gemma 4 26B-A4B `QAT UD-Q4_K_XL` | 14.2 GB | 17 GB | — |
 | Qwen3 30B-A3B `Q4_K_M` | 18.6 GB | 22 GB | 51.9 tok/s |
 | Qwen3 32B `Q4_K_M` | 19.8 GB | 24 GB | — |
 
@@ -196,10 +196,13 @@ quick"; it is "take the mixture-of-experts model, it is both the best and the fa
 The app orders the list by size but opens on the quickest model you already have that
 fits.
 
-Gemma 4's 26B-A4B is the other mixture-of-experts option, in its quantisation-aware
-build — smaller than the plain Q4_K_M at 14.2 GB, and QAT holds up better at four bits,
-which is worth having on a model whose perplexity is a little higher than the Qwen for
-its size.
+Gemma 4's 26B-A4B is the other mixture-of-experts option, and it is offered **only** as
+`unsloth/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL` — the quantisation-aware build. That is
+deliberate. The plain post-training-quantised build of the same model has noticeably
+higher perplexity and was found to invent things, so it is not in the list and should not
+be substituted in. QAT is trained with the four-bit rounding in the loop rather than
+having it applied afterwards, and on this model that is the difference between usable and
+not. It is also the smaller download of the two, at 14.2 GB against 16.9.
 
 Because the app times every reply anyway, your own measured rate replaces the table for
 any model you have actually used — which is the only figure that means anything on a card
