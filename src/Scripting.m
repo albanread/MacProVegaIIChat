@@ -27,6 +27,33 @@ static AppDelegate *App(void) { return (AppDelegate *)NSApp.delegate; }
 - (NSString *)scriptGPUName     { return App().gpuName ?: @""; }
 - (NSString *)scriptAttachedDocument { return App().document.name ?: @""; }
 
+// Forces this app's appearance only — the system setting is left alone. Exists so
+// light and dark screenshots can be taken without flipping the whole desktop.
+- (NSString *)scriptAppearance {
+    NSAppearance *a = NSApp.appearance;
+    if (!a) return @"auto";
+    return [a.name isEqualToString:NSAppearanceNameDarkAqua] ? @"dark" : @"light";
+}
+static void MVInvalidate(NSView *v) {
+    [v setNeedsDisplay:YES];
+    for (NSView *sub in v.subviews) MVInvalidate(sub);
+}
+- (void)setScriptAppearance:(NSString *)v {
+    NSString *w = v.lowercaseString;
+    NSAppearance *a = [w hasPrefix:@"d"] ? [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua]
+                    : [w hasPrefix:@"l"] ? [NSAppearance appearanceNamed:NSAppearanceNameAqua]
+                                         : nil;
+    NSApp.appearance = a;
+    // Setting it on the application alone leaves controls holding their old
+    // drawing until something else invalidates them, which a screenshot taken
+    // straight afterwards will catch half-done.
+    for (NSWindow *win in NSApp.windows) {
+        win.appearance = a;
+        MVInvalidate(win.contentView);
+        [win display];
+    }
+}
+
 - (NSString *)scriptDraftText {
     MVDraftWindow *w = [App() frontDraft];
     return w ? [w bodyText] : @"";
@@ -278,6 +305,37 @@ static MVTask *MVTaskNamed(NSString *name) {
 - (id)performDefaultImplementation {
     NSWindow *sheet = App().win.attachedSheet;
     if (sheet) [App().win endSheet:sheet];
+    return nil;
+}
+@end
+
+#pragma mark - Window size
+
+// Mostly for composing screenshots and for checking the layout holds up at
+// awkward sizes without anyone dragging a corner.
+@interface MVResizeCommand : NSScriptCommand @end
+@implementation MVResizeCommand
+- (id)performDefaultImplementation {
+    NSDictionary *a = self.evaluatedArguments;
+    NSInteger w = [a[@"width"] integerValue];
+    NSInteger h = [a[@"height"] integerValue];
+    NSString *which = [a[@"window"] lowercaseString] ?: @"main";
+    NSWindow *target = App().win;
+    if ([which hasPrefix:@"dr"]) {
+        MVDraftWindow *d = [App() frontDraft];
+        if (!d) {
+            self.scriptErrorNumber = -10000;
+            self.scriptErrorString = @"there is no draft window open";
+            return nil;
+        }
+        target = d.window;
+    }
+    NSRect f = target.frame;
+    NSSize min = target.minSize;
+    if (w > 0) f.size.width  = MAX(w, min.width);
+    if (h > 0) f.size.height = MAX(h, min.height);
+    [target setFrame:f display:YES animate:NO];
+    [target displayIfNeeded];
     return nil;
 }
 @end

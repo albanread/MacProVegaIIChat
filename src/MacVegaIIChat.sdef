@@ -45,6 +45,10 @@
                 description="Name of the document currently attached, or an empty string.">
         <cocoa key="scriptAttachedDocument"/>
       </property>
+      <property name="appearance" code="Appr" type="text" access="rw"
+                description="auto, light or dark — this app only, not the system.">
+        <cocoa key="scriptAppearance"/>
+      </property>
       <property name="draft text" code="DrfT" type="text" access="rw"
                 description="The text of the frontmost draft window.">
         <cocoa key="scriptDraftText"/>
@@ -151,6 +155,21 @@
 
     <command name="close panel" code="MVgAcpnl" description="Dismiss whatever panel is open.">
       <cocoa class="MVClosePanelCommand"/>
+    </command>
+
+    <command name="resize" code="MVgAsize"
+             description="Set a window's size, for composing screenshots and checking layout.">
+      <cocoa class="MVResizeCommand"/>
+      <parameter name="width" code="Wdth" type="integer" optional="yes">
+        <cocoa key="width"/>
+      </parameter>
+      <parameter name="height" code="Hght" type="integer" optional="yes">
+        <cocoa key="height"/>
+      </parameter>
+      <parameter name="window" code="RWin" type="text" optional="yes"
+                 description="main (the default) or draft.">
+        <cocoa key="window"/>
+      </parameter>
     </command>
 
     <command name="screenshot" code="MVgAshot"

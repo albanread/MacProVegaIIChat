@@ -156,9 +156,39 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
             return;
         }
         [v displayIfNeeded];
-        NSBitmapImageRep *rep = [v bitmapImageRepForCachingDisplayInRect:b];
-        [v cacheDisplayInRect:b toBitmapImageRep:rep];
-        NSData *png = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+        NSBitmapImageRep *shot = [v bitmapImageRepForCachingDisplayInRect:b];
+        [v cacheDisplayInRect:b toBitmapImageRep:shot];
+
+        // The content view draws no background of its own — the window frame does,
+        // and that is outside what cacheDisplayInRect: gives us. Without painting
+        // it first, a dark-mode capture is white text on nothing.
+        NSBitmapImageRep *out = [[NSBitmapImageRep alloc]
+            initWithBitmapDataPlanes:NULL
+                          pixelsWide:shot.pixelsWide
+                          pixelsHigh:shot.pixelsHigh
+                       bitsPerSample:8
+                     samplesPerPixel:4
+                            hasAlpha:YES
+                            isPlanar:NO
+                      colorSpaceName:NSDeviceRGBColorSpace
+                         bytesPerRow:0
+                        bitsPerPixel:0];
+        out.size = b.size;      // keeps the backing scale, so Retina stays Retina
+
+        NSGraphicsContext *ctx = [NSGraphicsContext graphicsContextWithBitmapImageRep:out];
+        void (^compose)(void) = ^{
+            [NSGraphicsContext saveGraphicsState];
+            NSGraphicsContext.currentContext = ctx;
+            [(win.backgroundColor ?: [NSColor windowBackgroundColor]) setFill];
+            NSRectFill(b);
+            [shot drawInRect:b];
+            [NSGraphicsContext restoreGraphicsState];
+        };
+        // Resolve windowBackgroundColor against the window's own appearance, not
+        // whatever happens to be current.
+        [win.effectiveAppearance performAsCurrentDrawingAppearance:compose];
+
+        NSData *png = [out representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
         if (!png) {
             e = [NSError errorWithDomain:@"MacVegaIIChat" code:21 userInfo:@{
                 NSLocalizedDescriptionKey: @"could not encode the window as PNG"}];
@@ -304,6 +334,16 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
 #pragma mark UI
 
 - (void)applicationDidFinishLaunching:(NSNotification *)n {
+    // Test hook: MV_APPEARANCE=dark builds the whole interface dark from the
+    // start, which is how a user with dark mode set meets it. Switching a live
+    // window instead only half-repaints, so this is the honest way to check it.
+    const char *look = getenv("MV_APPEARANCE");
+    if (look) {
+        NSString *w = [@(look) lowercaseString];
+        if ([w hasPrefix:@"d"]) NSApp.appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
+        else if ([w hasPrefix:@"l"]) NSApp.appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+    }
+
     // Two copies of this app means two engines and twice the VRAM. Hand over to the
     // one that is already up rather than quietly making the machine unusable.
     NSArray<NSRunningApplication *> *twins = [NSRunningApplication
@@ -809,6 +849,8 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
         self.document = nil;
         [self attachDocument:d];
     }
+    if ([self engineRunning])
+        [self showStatus:[NSString stringWithFormat:@"Ready — %@", [self currentModelName]]];
     [self say:@"system" text:@"Starting fresh — I have forgotten everything we said before."];
 }
 
@@ -1304,19 +1346,23 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
 
 - (void)noteTimings:(NSDictionary *)t {
     if (![self engineRunning]) return;
-    NSString *speed = @"";
     double tps = [t[@"predicted_per_second"] doubleValue];
-    // Only from a reply long enough to mean something: a five-token answer is
-    // mostly the cost of getting started.
-    if (tps > 0 && [t[@"predicted_n"] integerValue] >= 32)
-        MVRecordTPS([self selectedModel].file, tps);
     double ptps = [t[@"prompt_per_second"] doubleValue];
-    if (tps > 0) {
-        speed = [NSString stringWithFormat:@"  ·  %.1f tok/s", tps];
-        if (ptps > 0) speed = [speed stringByAppendingFormat:@"  ·  prompt %.0f tok/s", ptps];
-        self.lastTimingLine = speed;
+    NSInteger n = [t[@"predicted_n"] integerValue];
+
+    // A rate measured over a handful of tokens is mostly the cost of getting
+    // going — the first few decodes after a big prompt run several times slower
+    // than the steady state. Quoting that at someone is worse than saying nothing,
+    // so short replies get no speed reported and none recorded.
+    NSString *speed = @"";
+    if (tps > 0 && n >= 32) {
+        MVRecordTPS([self selectedModel].file, tps);
+        // Only the generation rate is worth showing. The prompt rate is enormous
+        // and meaningless whenever the cache is warm, which is most of the time.
+        speed = [NSString stringWithFormat:@"  ·  %.0f words a second", tps * 0.75];
+        (void) ptps;
     }
-    [self showStatus:[NSString stringWithFormat:@"Ready — %@%@  ·  conversation using ~%ld%% of context",
+    [self showStatus:[NSString stringWithFormat:@"Ready — %@%@  ·  using about %ld%% of what it can keep in mind",
         [self currentModelName], speed,
         (long)MIN(100, [self estimateTokens]*100/MVContextTokens())]];
 }

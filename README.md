@@ -15,6 +15,8 @@ On that card a Qwen3 30B-A3B answers at about 52 tokens a second. It is not a co
 
 ![minimum macOS 13.0](https://img.shields.io/badge/macOS-13.0%2B-lightgrey) ![x86_64](https://img.shields.io/badge/arch-x86__64-blue) ![licence MIT](https://img.shields.io/badge/licence-MIT-blue)
 
+![The main window, with a document attached and summarised](docs/main-light.png)
+
 ### Scope, stated plainly
 
 Built and tested on **one machine**: a Mac Pro 7,1 with a Radeon Pro Vega II (32 GB),
@@ -78,10 +80,17 @@ own window where you can edit it, ask for changes in plain English ("make it sho
 "warmer tone", "add a closing line"), and then Copy, Save as Markdown / plain text / RTF
 / Word, or Print — which is also how you get a PDF on a Mac.
 
+![The draft window](docs/draft.png)
+
+The draft above was written from the memo in the first screenshot — it takes the facts
+from it (Priya, the fob dates, the fire door) without reproducing it.
+
 **Settings that explain themselves.** Memory is measured in pages of text rather than
 tokens; reply length in pages rather than a token count; sampling temperature is
 Precise / Balanced / Inventive. There are standing instructions that go ahead of every
 conversation, a switch for whether it thinks before answering, and text size.
+
+![The settings panel](docs/settings.png)
 
 **It can be driven by a script.** See [Scripting](SCRIPTING.md).
 

@@ -366,12 +366,17 @@ NSArray<NSString *> *MVSplitIntoChunks(NSString *text, NSUInteger maxChars) {
         [self.tone lowercaseString], lengthHint];
     [p appendFormat:@"What it is for:\n%@\n\n", self.brief];
     if (self.source.length)
-        [p appendFormat:@"Source material to draw on — use it, do not contradict it:\n"
-                        @"-----\n%@\n-----\n\n", self.source];
+        [p appendFormat:
+            @"Here is source material. Take the facts from it — names, dates, places, "
+            @"decisions — and do not contradict it. Do NOT reproduce it: what you write is a "
+            @"new and different document, for the purpose given above, not a rewrite of this "
+            @"one.\n-----\n%@\n-----\n\n", self.source];
     [p appendString:
         @"Return only the document itself in Markdown: no preamble, no explanation of your "
-        @"choices, no closing offer to revise it. Where a real detail is missing — a name, a "
-        @"date, a figure — write it as [square brackets] so it is obvious what needs filling in."];
+        @"choices, no closing offer to revise it.\n\nIf a detail the document needs is "
+        @"genuinely unknown to you, write it as [in square brackets] so it is obvious what "
+        @"has to be filled in. Never bracket a detail you have been given — if a date, a name "
+        @"or a figure appears above, use it as it stands."];
     return p;
 }
 @end
