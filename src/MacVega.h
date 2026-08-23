@@ -191,6 +191,9 @@ typedef void (^MVDoneBlock)(NSString *text, NSString *errorMessage, NSDictionary
 
 // Used by the scripting commands and by the draft window.
 - (BOOL)engineRunning;
+- (BOOL)selectedModelPresent;
+- (void)startDownload;
+@property (copy) void (^downloadDone)(BOOL ok, NSString *error);
 - (void)startEngine;
 - (void)stopEngine;
 - (NSInteger)tokensIn:(NSString *)s;

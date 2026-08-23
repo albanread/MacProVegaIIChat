@@ -296,6 +296,7 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
     if (!m.url) return m.file;      // a file the user chose: already an absolute path
     return [[self supportDir] stringByAppendingPathComponent:m.file];
 }
+- (BOOL)selectedModelPresent { return [self modelPresent:[self selectedModel]]; }
 - (BOOL)modelPresent:(ModelSpec *)m {
     return [[NSFileManager defaultManager] fileExistsAtPath:[self modelPath:m]];
 }
@@ -941,6 +942,12 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
     if ([self modelPresent:m]) [self startEngine]; else [self startDownload];
 }
 
+- (void)finishDownload:(BOOL)ok error:(NSString *)err {
+    void (^done)(BOOL, NSString *) = self.downloadDone;
+    self.downloadDone = nil;
+    if (done) done(ok, err);
+}
+
 - (void)startDownload {
     ModelSpec *m = [self selectedModel];
     if (!m.url) { [self showStatus:@"That model file has gone missing."]; return; }
@@ -981,8 +988,14 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
     }
     dispatch_async(dispatch_get_main_queue(), ^{
         self.prog.hidden = YES; self.actionBtn.enabled = YES; self.modelPop.enabled = YES;
-        if (e) { [self showStatus:[NSString stringWithFormat:@"Download failed: %@", e.localizedDescription]]; }
-        else { [self showStatus:@"Downloaded. Press Start."]; [self modelChanged:nil]; }
+        if (e) {
+            [self showStatus:[NSString stringWithFormat:@"Download failed: %@", e.localizedDescription]];
+            [self finishDownload:NO error:e.localizedDescription];
+        } else {
+            [self showStatus:@"Downloaded. Press Start."];
+            [self modelChanged:nil];
+            [self finishDownload:YES error:nil];
+        }
     });
 }
 - (void)URLSession:(NSURLSession *)s task:(NSURLSessionTask *)t didCompleteWithError:(NSError *)e {
@@ -995,10 +1008,13 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
         if ([self modelPresent:[self selectedModel]]) {
             [self showStatus:@"Downloaded. Press Start."];
             [self modelChanged:nil];
+            [self finishDownload:YES error:nil];
         } else if (e.code == NSURLErrorCancelled) {
             [self showStatus:@"Download cancelled."];
+            [self finishDownload:NO error:@"cancelled"];
         } else {
             [self showStatus:[NSString stringWithFormat:@"Download failed: %@", e.localizedDescription]];
+            [self finishDownload:NO error:e.localizedDescription];
         }
     });
 }

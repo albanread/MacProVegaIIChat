@@ -45,6 +45,18 @@
                 description="Name of the document currently attached, or an empty string.">
         <cocoa key="scriptAttachedDocument"/>
       </property>
+      <property name="model downloaded" code="MdlD" type="boolean" access="r"
+                description="True if the selected model is already on this Mac.">
+        <cocoa key="scriptModelDownloaded"/>
+      </property>
+      <property name="model has own template" code="MdlT" type="boolean" access="r"
+                description="True if the loaded model file carried its own chat template.">
+        <cocoa key="scriptModelOwnTemplate"/>
+      </property>
+      <property name="model can think" code="MdlK" type="boolean" access="r"
+                description="True if the loaded model's template has a reasoning mode.">
+        <cocoa key="scriptModelCanThink"/>
+      </property>
       <property name="appearance" code="Appr" type="text" access="rw"
                 description="auto, light or dark — this app only, not the system.">
         <cocoa key="scriptAppearance"/>
@@ -77,6 +89,12 @@
                  description="Seconds to wait; 300 by default.">
         <cocoa key="timeout"/>
       </parameter>
+      <result type="boolean"/>
+    </command>
+
+    <command name="download model" code="MVgAdlmd"
+             description="Download the selected model, if it is not already here. Slow.">
+      <cocoa class="MVDownloadCommand"/>
       <result type="boolean"/>
     </command>
 

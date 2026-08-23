@@ -26,6 +26,9 @@ static AppDelegate *App(void) { return (AppDelegate *)NSApp.delegate; }
 - (NSString *)scriptModelName   { return [App() currentModelName] ?: @""; }
 - (NSString *)scriptGPUName     { return App().gpuName ?: @""; }
 - (NSString *)scriptAttachedDocument { return App().document.name ?: @""; }
+- (BOOL)scriptModelDownloaded  { return [App() selectedModelPresent]; }
+- (BOOL)scriptModelOwnTemplate { return [MVEngine shared].modelHasOwnTemplate; }
+- (BOOL)scriptModelCanThink    { return [MVEngine shared].modelCanThink; }
 
 // Forces this app's appearance only — the system setting is left alone. Exists so
 // light and dark screenshots can be taken without flipping the whole desktop.
@@ -109,6 +112,32 @@ static void MVInvalidate(NSView *v) {
 @interface MVNewChatCommand : NSScriptCommand @end
 @implementation MVNewChatCommand
 - (id)performDefaultImplementation { [App() startNewChat:nil]; return nil; }
+@end
+
+// Uses the app's own downloader, so this tests the path a user takes rather
+// than a shortcut past it — including the check that what arrived is a GGUF.
+@interface MVDownloadCommand : MVWaitingCommand @end
+@implementation MVDownloadCommand
+- (id)performDefaultImplementation {
+    if ([App() selectedModelPresent]) return @YES;
+    if (App().engineOn) {
+        self.scriptErrorNumber = -10000;
+        self.scriptErrorString = @"put the model away before downloading another";
+        return nil;
+    }
+    [self suspendExecution];
+    App().downloadDone = ^(BOOL ok, NSString *err) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (!ok) {
+                self.scriptErrorNumber = -10000;
+                self.scriptErrorString = err ?: @"the download failed";
+            }
+            [self resumeExecutionWithResult:@(ok)];
+        });
+    };
+    [App() startDownload];
+    return nil;
+}
 @end
 
 @interface MVSelectModelCommand : NSScriptCommand @end
