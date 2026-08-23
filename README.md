@@ -44,6 +44,16 @@ rather than inventing a figure.
 | Qwen3 30B-A3B `Q4_K_M` | 18.6 GB | 22 GB | 51.9 tok/s |
 | Qwen3 32B `Q4_K_M` | 19.8 GB | 24 GB | — |
 
+### Which one should you use?
+
+**The 30B-A3B, if your card can take it.** That is not the usual advice about big
+downloads, and it is not a close call. Of the models tested here it is the only one that
+held up on real work, and it is also nearly the fastest — only about 3B of its parameters
+are active at a time, so it answers at 52 tokens a second, within a whisker of a 3B model.
+
+The small ones are quick and pleasant to chat with, and they are not good enough for the
+job this app is mostly for. See below.
+
 **The useful thing those numbers say:** on this card, the biggest download is also very
 nearly the fastest. Qwen3 30B-A3B runs at 51.9 tok/s — within a whisker of a 3B model —
 because only about 3B of its parameters are active per token. A dense 12B managed 20.6
@@ -82,6 +92,55 @@ them have been run on it.
 If there is a small model you would like tested on this hardware,
 [raise an issue](https://github.com/albanread/MacProVegaIIChat/issues). We may eventually
 get around to it, and that is the whole of what we can promise.
+
+## How the models were tested
+
+These are **user tests, not benchmarks.** Each model was put through this app the way
+somebody would actually use it, and the answers were read by hand. If you want perplexity
+figures, token throughput and the kernel work underneath, that is all in
+[IntelMacLlamaCpp](https://github.com/albanread/IntelMacLlamaCpp) — this page is about
+whether a model is any good to use.
+
+Every model was downloaded through the app, loaded onto the card, and asked to do five
+things:
+
+- **Work something out.** *Three lathes each need 45 minutes of servicing. Two people work
+  at the same time. How long until all three are done?* The answer is 90 minutes. This
+  catches a model that gives a confident number with reasoning that contradicts it.
+- **Follow a plain instruction.** *Reply with exactly four words and no punctuation.*
+  Either it does or it does not.
+- **Summarise a real memo** — a page of workshop notices with names, dates and deadlines
+  in it.
+- **Proofread the same memo**, which has four genuine mistakes in it. The tell here is a
+  model that lists a correction identical to the original — `to → to`. That looks like
+  work and is not, and it is easy to miss when you are skimming.
+- **Admit what it does not know.** The memo says nothing about money, so it is asked what
+  the budget is. The right answer is that the document does not say.
+
+That last one matters more than the others. A model that invents a budget will invent
+other things, and in an app whose main job is reading your documents, that is the failure
+that actually costs you something.
+
+### What happened
+
+| Model | Worked it out | Grounded | Proofreading |
+|---|---|---|---|
+| Llama 3.2 3B | ✗ said 135 minutes | ✓ "it does not say" | thin, and sometimes lists corrections identical to the original |
+| Qwen3 4B | ✗ said 55 minutes, inventing "45 − 35 = 10" | ✓ | **six of seven lines were corrections that corrected nothing** |
+| Qwen3 8B | ✗ said 45 minutes, losing a lathe | ✓ | fills the list with "no mistake here" lines, and has been seen repeating one line over and over |
+| Qwen3 30B-A3B | — | ✓ | **one line, correct, nothing invented** |
+| Qwen3 14B, Gemma 4 26B-A4B, Qwen3 32B | not yet tested | | |
+
+Every small model failed the arithmetic, and each failed differently — 135 minutes, 55
+minutes, 45 minutes, where the answer is 90. Every one of them was fluent and confident
+about it. None of them invented a budget, which is the one thing they all got right.
+
+The proofreading column is the one to read. A list of corrections where the correction is
+the same as the original looks like a model doing its job, and it is the sort of thing you
+only catch by reading every line — which is the work you were trying to avoid.
+
+**The honest summary: below about 14B, use it to chat and do not trust it with your
+documents.**
 
 ## What it does
 

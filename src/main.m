@@ -56,37 +56,37 @@ static void   MVRecordTPS(NSString *file, double tps);
 static NSArray<ModelSpec *> *Catalogue(void) {
     NSMutableArray *a = [@[
         [ModelSpec n:@"Llama 3.2 3B"
-                   b:@"the quickest here, and the smallest download"
+                   b:@"quick, but loses track — chat only, not documents"
                    f:@"Llama-3.2-3B-Instruct-Q5_K_M.gguf"
                    u:@"https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q5_K_M.gguf"
                    g:2.3 v:4.0 t:54.4],
         [ModelSpec n:@"Qwen3 4B"
-                   b:@"small and quick, good for chat and short documents"
+                   b:@"quick, but unreliable on documents"
                    f:@"Qwen3-4B-Q4_K_M.gguf"
                    u:@"https://huggingface.co/Qwen/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q4_K_M.gguf"
                    g:2.5 v:4.0 t:0],
         [ModelSpec n:@"Qwen3 8B"
-                   b:@"a good all-rounder, and the safe first choice"
+                   b:@"fine for chat; makes things up when proofreading"
                    f:@"Qwen3-8B-Q4_K_M.gguf"
                    u:@"https://huggingface.co/Qwen/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q4_K_M.gguf"
                    g:5.0 v:7.0 t:46.9],
         [ModelSpec n:@"Qwen3 14B"
-                   b:@"better at writing and reviewing than the 8B"
+                   b:@"bigger, but not yet tested here"
                    f:@"Qwen3-14B-Q4_K_M.gguf"
                    u:@"https://huggingface.co/Qwen/Qwen3-14B-GGUF/resolve/main/Qwen3-14B-Q4_K_M.gguf"
                    g:9.0 v:12.0 t:0],
         [ModelSpec n:@"Gemma 4 26B-A4B"
-                   b:@"quick for its size; a little looser than the Qwen 30B"
+                   b:@"the other big one, not yet tested here"
                    f:@"gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf"
                    u:@"https://huggingface.co/unsloth/gemma-4-26B-A4B-it-qat-GGUF/resolve/main/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf"
                    g:14.2 v:17.0 t:0],
         [ModelSpec n:@"Qwen3 30B-A3B"
-                   b:@"the best of these AND almost the fastest — start here if it fits"
+                   b:@"★ the one to use — quick, and the only one that held up"
                    f:@"Qwen3-30B-A3B-Q4_K_M.gguf"
                    u:@"https://huggingface.co/Qwen/Qwen3-30B-A3B-GGUF/resolve/main/Qwen3-30B-A3B-Q4_K_M.gguf"
                    g:18.6 v:22.0 t:51.9],
         [ModelSpec n:@"Qwen3 32B"
-                   b:@"thorough, but far slower than the 30B above"
+                   b:@"the biggest, and not yet tested here"
                    f:@"Qwen3-32B-Q4_K_M.gguf"
                    u:@"https://huggingface.co/Qwen/Qwen3-32B-GGUF/resolve/main/Qwen3-32B-Q4_K_M.gguf"
                    g:19.8 v:24.0 t:0],
@@ -773,6 +773,11 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
             @"Ready, but it is a squeeze: this one is happiest with about %.0f GB of graphics "
             @"memory and your card has %.1f GB. It may be slow, or refuse to start.",
             m.needGiB, self.gpuVRAM]];
+    } else if (m.url && m.gib < 8.0) {
+        [self showStatus:[NSString stringWithFormat:
+            @"Ready — but this one is small. It is fine to chat with and unreliable at "
+            @"reading documents. If your card can take it, use the 30B-A3B instead.%@",
+            [self speedNote:m]]];
     } else {
         [self showStatus:[NSString stringWithFormat:@"On this Mac and ready — press Start.%@",
                           [self speedNote:m]]];

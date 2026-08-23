@@ -381,6 +381,25 @@ static bool MVProgressThunk(float p, void * user) {
         auto sparams = llama_sampler_chain_default_params();
         sparams.no_perf = true;
         llama_sampler *smpl = llama_sampler_chain_init(sparams);
+
+        // Guards against the model falling into a loop — repeating one line of a
+        // list until it runs out of budget. llama.cpp leaves both of these off by
+        // default, which is the right call for a library and the wrong one for an
+        // app whose commonest job is producing lists. Smaller models are where it
+        // happens; an 8B was seen emitting the same proofreading line six times.
+        //
+        // DRY penalises tokens that *extend* a repetition, so it catches loops
+        // without punishing ordinary reuse — the same name appearing on every line
+        // of an action list is fine. The gentle repeat penalty is a backstop for
+        // whole-line loops, which DRY's newline breaker would otherwise let past.
+        static const char *breakers[] = {":", "\"", "*"};
+        llama_sampler_chain_add(smpl, llama_sampler_init_dry(
+            self->_vocab, 0.8f, 1.75f, /* allowed length */ 3,
+            /* look back */ 512, breakers, sizeof breakers / sizeof breakers[0]));
+        llama_sampler_chain_add(smpl, llama_sampler_init_penalties(
+            llama_vocab_n_tokens(self->_vocab), /* last n */ 256,
+            /* repeat */ 1.05f, /* freq */ 0.0f, /* present */ 0.0f));
+
         llama_sampler_chain_add(smpl, llama_sampler_init_top_k(40));
         llama_sampler_chain_add(smpl, llama_sampler_init_top_p(0.95f, 1));
         llama_sampler_chain_add(smpl, llama_sampler_init_temp((float) temperature));
