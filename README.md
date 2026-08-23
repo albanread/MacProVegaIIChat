@@ -22,6 +22,61 @@ type or open ever leaves it.
 Built and tested for one machine and one graphics card: a Mac Pro (2019) with a Radeon
 Pro Vega II. Anything else is untested.
 
+## Models
+
+Seven models are offered in the app, with a tick beside the ones already on this Mac. Speeds are what was
+actually measured on a Radeon Pro Vega II; where nobody has timed one the app says so
+rather than inventing a figure.
+
+| Model | Download | Wants about | Measured |
+|---|---|---|---|
+| Llama 3.2 3B `Q5_K_M` | 2.3 GB | 4 GB | 54.4 tok/s |
+| Qwen3 4B `Q4_K_M` | 2.5 GB | 4 GB | — |
+| Qwen3 8B `Q4_K_M` | 5.0 GB | 7 GB | 46.9 tok/s |
+| Qwen3 14B `Q4_K_M` | 9.0 GB | 12 GB | — |
+| Gemma 4 26B-A4B `QAT UD-Q4_K_XL` | 14.2 GB | 17 GB | — |
+| Qwen3 30B-A3B `Q4_K_M` | 18.6 GB | 22 GB | 51.9 tok/s |
+| Qwen3 32B `Q4_K_M` | 19.8 GB | 24 GB | — |
+
+**The useful thing those numbers say:** on this card, the biggest download is also very
+nearly the fastest. Qwen3 30B-A3B runs at 51.9 tok/s — within a whisker of a 3B model —
+because only about 3B of its parameters are active per token. A dense 12B managed 20.6
+tok/s on the same card — less than half the speed for a third of the size. So the advice on a 32 GB card is not "pick something small to keep it
+quick"; it is "take the mixture-of-experts model, it is both the best and the fastest".
+The app orders the list by size but opens on the quickest model you already have that
+fits.
+
+A Gemma 3 12B was measured here too, and is deliberately not offered: it invented things
+in testing on this machine often enough to be untrustworthy for reading documents, which
+is most of what this app is for. Its speed figure is quoted above only because it is a
+useful measurement of the card.
+
+Gemma 4's 26B-A4B is the other mixture-of-experts option, and it is offered **only** as
+`unsloth/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL` — the quantisation-aware build. That is
+deliberate. The plain post-training-quantised build of the same model has noticeably
+higher perplexity and was found to invent things, so it is not in the list and should not
+be substituted in. QAT is trained with the four-bit rounding in the loop rather than
+having it applied afterwards, and on this model that is the difference between usable and
+not. It is also the smaller download of the two, at 14.2 GB against 16.9.
+
+Because the app times every reply anyway, your own measured rate replaces the table for
+any model you have actually used — which is the only figure that means anything on a card
+other than a Vega II.
+
+### Bringing your own
+
+"Use a model file I already have…" at the bottom of the same menu takes any GGUF. It is
+**not tested and not recommended.** It ought to work — the chat template, the special
+tokens and the reasoning markers all come out of the file, so anything llama.cpp can load
+should run, and a new model family needs no change here. But a model can be subtly wrong
+in ways that are not obvious from a few replies, and nothing in the app will warn you.
+The models in the table above were picked for this card, and the ones with a speed beside
+them have been run on it.
+
+If there is a small model you would like tested on this hardware,
+[raise an issue](https://github.com/albanread/MacProVegaIIChat/issues). We may eventually
+get around to it, and that is the whole of what we can promise.
+
 ## What it does
 
 **Talk to it.** An ordinary chat window. Multi-line input, Return to send, Shift-Return
@@ -67,35 +122,6 @@ conversation, a switch for whether it thinks before answering, and text size.
 ![The settings panel](docs/settings.png)
 
 **It can be driven by a script.** See [Scripting](SCRIPTING.md).
-
-## Build
-
-You need llama.cpp built as static libraries first — the app links them in, so there is
-no separate engine binary to ship:
-
-```bash
-cd /Volumes/S/llama.cpp
-cmake -B build-rel -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 -DBUILD_SHARED_LIBS=OFF \
-      -DGGML_METAL=ON -DGGML_METAL_EMBED_LIBRARY=ON -DLLAMA_CURL=OFF
-cmake --build build-rel -j --target llama-common
-```
-
-`BUILD_SHARED_LIBS=OFF` and `GGML_METAL_EMBED_LIBRARY=ON` both matter: the app has to be
-one relocatable binary with the Metal shaders inside it.
-
-Then:
-
-```bash
-./build.sh      # compiles the app and links llama.cpp into it
-./makedmg.sh    # produces MacVegaIIChat-<version>.dmg
-```
-
-`build.sh` looks for llama.cpp at `/Volumes/S/llama.cpp`; set `LLAMA_CPP` to point
-somewhere else.
-
-See [SIGNING.md](SIGNING.md) for notarisation. Unsigned, macOS **SIGKILLs** a downloaded
-copy — ad-hoc signing does not help, only Developer ID + notarisation does.
 
 ## Design notes
 
@@ -153,67 +179,17 @@ machine with both, the app must pick the Vega II — which is exactly what it do
 best available GPU is not Metal 3 capable, the app says so on launch rather than
 producing wrong output.
 
-## Models
-
-Seven are offered, with a tick beside the ones already on this Mac. Speeds are what was
-actually measured on a Radeon Pro Vega II; where nobody has timed one the app says so
-rather than inventing a figure.
-
-| Model | Download | Wants about | Measured |
-|---|---|---|---|
-| Llama 3.2 3B `Q5_K_M` | 2.3 GB | 4 GB | 54.4 tok/s |
-| Qwen3 4B `Q4_K_M` | 2.5 GB | 4 GB | — |
-| Qwen3 8B `Q4_K_M` | 5.0 GB | 7 GB | 46.9 tok/s |
-| Qwen3 14B `Q4_K_M` | 9.0 GB | 12 GB | — |
-| Gemma 4 26B-A4B `QAT UD-Q4_K_XL` | 14.2 GB | 17 GB | — |
-| Qwen3 30B-A3B `Q4_K_M` | 18.6 GB | 22 GB | 51.9 tok/s |
-| Qwen3 32B `Q4_K_M` | 19.8 GB | 24 GB | — |
-
-**The useful thing those numbers say:** on this card, the biggest download is also very
-nearly the fastest. Qwen3 30B-A3B runs at 51.9 tok/s — within a whisker of a 3B model —
-because only about 3B of its parameters are active per token. A dense 12B managed 20.6
-tok/s on the same card — less than half the speed for a third of the size. So the advice on a 32 GB card is not "pick something small to keep it
-quick"; it is "take the mixture-of-experts model, it is both the best and the fastest".
-The app orders the list by size but opens on the quickest model you already have that
-fits.
-
-A Gemma 3 12B was measured here too, and is deliberately not offered: it invented things
-in testing on this machine often enough to be untrustworthy for reading documents, which
-is most of what this app is for. Its speed figure is quoted above only because it is a
-useful measurement of the card.
-
-Gemma 4's 26B-A4B is the other mixture-of-experts option, and it is offered **only** as
-`unsloth/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL` — the quantisation-aware build. That is
-deliberate. The plain post-training-quantised build of the same model has noticeably
-higher perplexity and was found to invent things, so it is not in the list and should not
-be substituted in. QAT is trained with the four-bit rounding in the loop rather than
-having it applied afterwards, and on this model that is the difference between usable and
-not. It is also the smaller download of the two, at 14.2 GB against 16.9.
-
-Because the app times every reply anyway, your own measured rate replaces the table for
-any model you have actually used — which is the only figure that means anything on a card
-other than a Vega II.
-
-### Bringing your own
-
-"Use a model file I already have…" at the bottom of the same menu takes any GGUF. It is
-**not tested and not recommended.** It ought to work — the chat template, the special
-tokens and the reasoning markers all come out of the file, so anything llama.cpp can load
-should run, and a new model family needs no change here. But a model can be subtly wrong
-in ways that are not obvious from a few replies, and nothing in the app will warn you.
-The models in the table above were picked for this card, and the ones with a speed beside
-them have been run on it.
-
-If there is a small model you would like tested on this hardware,
-[raise an issue](https://github.com/albanread/MacProVegaIIChat/issues). We may eventually
-get around to it, and that is the whole of what we can promise.
-
 ## Limitations
 
 - x86_64 only, by design.
 - No conversation persistence and no multi-chat. The transcript can be saved as
   Markdown; the conversation itself is not restored on reopening.
 - Scanned PDFs with no text layer cannot be read — there is no OCR.
+
+## Building it
+
+See [BUILDING.md](BUILDING.md) if you want to compile it yourself. You do not need to —
+the disk image is a finished thing.
 
 ## Licence
 
