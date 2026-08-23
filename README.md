@@ -194,10 +194,19 @@ Because the app times every reply anyway, your own measured rate replaces the ta
 any model you have actually used — which is the only figure that means anything on a card
 other than a Vega II.
 
-"Use a model file I already have…" at the bottom of the same menu takes any GGUF —
-useful if you have a shelf of them already and no wish to download another. The chat
-template, the special tokens and the reasoning markers all come out of the file, so
-anything llama.cpp can load should work, and new model families need no change here.
+### Bringing your own
+
+"Use a model file I already have…" at the bottom of the same menu takes any GGUF. It is
+**not tested and not recommended.** It ought to work — the chat template, the special
+tokens and the reasoning markers all come out of the file, so anything llama.cpp can load
+should run, and a new model family needs no change here. But a model can be subtly wrong
+in ways that are not obvious from a few replies, and nothing in the app will warn you.
+The models in the table above were picked for this card, and the ones with a speed beside
+them have been run on it.
+
+If there is a small model you would like tested on this hardware,
+[raise an issue](https://github.com/albanread/MacProVegaIIChat/issues). We may eventually
+get around to it, and that is the whole of what we can promise.
 
 ## Limitations
 

@@ -324,7 +324,7 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
                 [NSImage imageWithSystemSymbolName:@"checkmark.circle.fill" accessibilityDescription:@"already downloaded"];
     }
     [self.modelPop.menu addItem:[NSMenuItem separatorItem]];
-    [self.modelPop addItemWithTitle:@"Use a model file I already have…"];
+    [self.modelPop addItemWithTitle:@"Use a model file I already have…  (untested)"];
     self.chooseFileIndex = self.modelPop.numberOfItems - 1;
     if (was) [self.modelPop selectItemWithTitle:was];
     if (self.modelPop.indexOfSelectedItem < 0 ||
@@ -810,7 +810,15 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
         [self rebuildModelMenu];
         [self.modelPop selectItemAtIndex:Catalogue().count - 1];
         [self modelChanged:nil];
-        [self say:@"system" text:[NSString stringWithFormat:@"Using %@. Press Start.", p.URL.lastPathComponent]];
+        [self say:@"system" text:[NSString stringWithFormat:
+            @"Using %@. Press Start.\n\nWorth knowing before you rely on it: a model you "
+            @"bring yourself is not tested here and not recommended. It will most likely "
+            @"run — but a model can be subtly wrong in ways that take a long while to "
+            @"notice, and nothing on screen will tell you. The models in the list above were "
+            @"chosen for this card.\n\nIf there is a small model you would like "
+            @"tested on this hardware, raise an issue on the project. We may eventually get "
+            @"around to it, and that is the whole of what we can promise.",
+            p.URL.lastPathComponent]];
     }];
 }
 
