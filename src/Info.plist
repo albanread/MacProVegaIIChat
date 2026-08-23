@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>                  <string>MacVegaIIChat</string>
+    <key>CFBundleDisplayName</key>           <string>MacVegaII Chat</string>
+    <key>CFBundleIdentifier</key>            <string>com.albanread.macvegaiichat</string>
+    <key>CFBundleVersion</key>               <string>2</string>
+    <key>CFBundleShortVersionString</key>    <string>0.2.0</string>
+    <key>CFBundlePackageType</key>           <string>APPL</string>
+    <key>CFBundleExecutable</key>            <string>MacVegaIIChat</string>
+    <key>CFBundleIconFile</key>              <string>AppIcon</string>
+    <key>LSMinimumSystemVersion</key>        <string>13.0</string>
+    <key>NSHighResolutionCapable</key>       <true/>
+    <key>NSHumanReadableCopyright</key>      <string>MIT. Bundles llama.cpp (MIT).</string>
+
+    <!-- Apple Event support: the app can be driven and screenshotted from a script -->
+    <key>NSAppleScriptEnabled</key>          <true/>
+    <key>OSAScriptingDefinition</key>        <string>MacVegaIIChat.sdef</string>
+
+    <!-- so a document can be dropped on the app icon, or opened with it -->
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>      <string>Document</string>
+            <key>CFBundleTypeRole</key>      <string>Viewer</string>
+            <key>LSHandlerRank</key>         <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.plain-text</string>
+                <string>public.text</string>
+                <string>public.source-code</string>
+                <string>net.daringfireball.markdown</string>
+                <string>com.adobe.pdf</string>
+                <string>public.rtf</string>
+                <string>com.microsoft.word.doc</string>
+                <string>org.openxmlformats.wordprocessingml.document</string>
+                <string>public.html</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- the only network use is downloading a model over https -->
+</dict>
+</plist>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+<dictionary title="MacVegaII Chat Terminology">
+
+  <suite name="Standard Suite" code="????" description="Common commands.">
+    <command name="quit" code="aevtquit" description="Quit the application.">
+      <cocoa class="NSQuitCommand"/>
+    </command>
+  </suite>
+
+  <suite name="MacVegaII Chat Suite" code="MVgA"
+         description="Driving the chat, the document work and the drafts.">
+
+    <class name="application" code="capp" description="The application itself.">
+      <cocoa class="NSApplication"/>
+      <property name="engine running" code="Erun" type="boolean" access="r"
+                description="True once the model is loaded and able to answer.">
+        <cocoa key="scriptEngineRunning"/>
+      </property>
+      <property name="busy" code="Bsy1" type="boolean" access="r"
+                description="True while the model is generating.">
+        <cocoa key="scriptBusy"/>
+      </property>
+      <property name="status" code="Stat" type="text" access="r"
+                description="The status line under the toolbar.">
+        <cocoa key="scriptStatus"/>
+      </property>
+      <property name="transcript" code="Trsc" type="text" access="r"
+                description="Everything in the chat window, as plain text.">
+        <cocoa key="scriptTranscript"/>
+      </property>
+      <property name="last answer" code="LAns" type="text" access="r"
+                description="The most recent answer, without the thinking.">
+        <cocoa key="scriptLastAnswer"/>
+      </property>
+      <property name="model name" code="MdlN" type="text" access="r"
+                description="The selected model file.">
+        <cocoa key="scriptModelName"/>
+      </property>
+      <property name="gpu name" code="GpuN" type="text" access="r"
+                description="The GPU the engine was pointed at.">
+        <cocoa key="scriptGPUName"/>
+      </property>
+      <property name="attached document" code="AttD" type="text" access="r"
+                description="Name of the document currently attached, or an empty string.">
+        <cocoa key="scriptAttachedDocument"/>
+      </property>
+      <property name="draft text" code="DrfT" type="text" access="rw"
+                description="The text of the frontmost draft window.">
+        <cocoa key="scriptDraftText"/>
+      </property>
+    </class>
+
+    <command name="start engine" code="MVgAstrt"
+             description="Load the selected model onto the graphics card.">
+      <cocoa class="MVStartCommand"/>
+      <result type="boolean"/>
+    </command>
+
+    <command name="stop engine" code="MVgAstop" description="Unload the model and free the card.">
+      <cocoa class="MVStopCommand"/>
+    </command>
+
+    <command name="new chat" code="MVgAnewc"
+             description="Clear the conversation and the transcript.">
+      <cocoa class="MVNewChatCommand"/>
+    </command>
+
+    <command name="wait until ready" code="MVgAwtry"
+             description="Block until the engine is up and idle. Returns false on timeout.">
+      <cocoa class="MVWaitCommand"/>
+      <parameter name="timeout" code="Tmot" type="integer" optional="yes"
+                 description="Seconds to wait; 300 by default.">
+        <cocoa key="timeout"/>
+      </parameter>
+      <result type="boolean"/>
+    </command>
+
+    <command name="select model" code="MVgAsmdl"
+             description="Choose a model by file name or by part of its menu title.">
+      <cocoa class="MVSelectModelCommand"/>
+      <direct-parameter type="text"/>
+      <result type="boolean"/>
+    </command>
+
+    <command name="ask" code="MVgAask1"
+             description="Ask a question and wait for the whole answer.">
+      <cocoa class="MVAskCommand"/>
+      <direct-parameter type="text" description="The question."/>
+      <result type="text" description="The answer."/>
+    </command>
+
+    <command name="attach document" code="MVgAatch"
+             description="Give the model a document to work from.">
+      <cocoa class="MVAttachCommand"/>
+      <direct-parameter type="text" description="POSIX path of the document."/>
+      <result type="text" description="A one-line description of what was read."/>
+    </command>
+
+    <command name="detach document" code="MVgAdtch" description="Put the document aside.">
+      <cocoa class="MVDetachCommand"/>
+    </command>
+
+    <command name="review document" code="MVgArevw"
+             description="Run one of the reading tasks over the attached document.">
+      <cocoa class="MVReviewCommand"/>
+      <direct-parameter type="text"
+        description="summarise, key points, critique, proofread, actions or explain."/>
+      <parameter name="document" code="Doc1" type="text" optional="yes"
+                 description="POSIX path to attach first.">
+        <cocoa key="document"/>
+      </parameter>
+      <result type="text"/>
+    </command>
+
+    <command name="write document" code="MVgAwrit"
+             description="Draft a document. It opens in its own window.">
+      <cocoa class="MVWriteCommand"/>
+      <direct-parameter type="text" description="What it is for."/>
+      <parameter name="kind" code="Kind" type="text" optional="yes"
+                 description="Letter, Email, Memo, Report, Proposal, Blog post, …">
+        <cocoa key="kind"/>
+      </parameter>
+      <parameter name="tone" code="Tone" type="text" optional="yes"
+                 description="Neutral, Friendly, Formal, Direct, Warm, Persuasive.">
+        <cocoa key="tone"/>
+      </parameter>
+      <parameter name="length" code="Leng" type="text" optional="yes"
+                 description="short, medium or long.">
+        <cocoa key="length"/>
+      </parameter>
+      <parameter name="using document" code="UseD" type="boolean" optional="yes"
+                 description="Draw on the attached document.">
+        <cocoa key="usingDocument"/>
+      </parameter>
+      <result type="text" description="The drafted document."/>
+    </command>
+
+    <command name="revise draft" code="MVgArevs"
+             description="Rewrite the frontmost draft.">
+      <cocoa class="MVReviseCommand"/>
+      <direct-parameter type="text" description="What to change."/>
+      <result type="text" description="The revised document."/>
+    </command>
+
+    <command name="open panel" code="MVgApanl"
+             description="Open the Settings panel, or the “write me a document” panel.">
+      <cocoa class="MVPanelCommand"/>
+      <direct-parameter type="text" description="settings (the default) or write."/>
+    </command>
+
+    <command name="close panel" code="MVgAcpnl" description="Dismiss whatever panel is open.">
+      <cocoa class="MVClosePanelCommand"/>
+    </command>
+
+    <command name="screenshot" code="MVgAshot"
+             description="Write a PNG of a window. Captures the app's own view, so it needs no
+                          screen-recording permission.">
+      <cocoa class="MVScreenshotCommand"/>
+      <direct-parameter type="text" description="POSIX path to write."/>
+      <parameter name="window" code="Wind" type="text" optional="yes"
+                 description="main (the default), draft, or panel for an open sheet.">
+        <cocoa key="window"/>
+      </parameter>
+      <result type="text" description="The path written."/>
+    </command>
+
+  </suite>
+</dictionary>

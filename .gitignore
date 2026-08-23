@@ -1,0 +1,7 @@
+# build output
+build/
+*.app/
+*.dmg
+
+# macOS
+.DS_Store
