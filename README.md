@@ -30,62 +30,42 @@ Pro Vega II. Anything else is untested.
 
 ## Models
 
-Seven models are offered in the app, with a tick beside the ones already on this Mac. Speeds are what was
-actually measured on a Radeon Pro Vega II; where nobody has timed one the app says so
-rather than inventing a figure.
+Five are offered, with a tick beside the ones already on this Mac. Speeds are what was
+measured on a Radeon Pro Vega II.
 
-| Model | Download | Wants about | Measured |
+| Model | Download | Wants about | Speed |
 |---|---|---|---|
-| Llama 3.2 3B `Q5_K_M` | 2.3 GB | 4 GB | 54.4 tok/s |
-| Qwen3 4B `Q4_K_M` | 2.5 GB | 4 GB | — |
-| Qwen3 8B `Q4_K_M` | 5.0 GB | 7 GB | 46.9 tok/s |
 | Qwen3 14B `Q4_K_M` | 9.0 GB | 12 GB | — |
-| Gemma 4 26B-A4B `QAT UD-Q4_K_XL` | 14.2 GB | 17 GB | — |
-| Qwen3 30B-A3B `Q4_K_M` | 18.6 GB | 22 GB | 51.9 tok/s |
+| Gemma 4 26B-A4B `QAT UD-Q4_K_XL` | 14.2 GB | 17 GB | 49 tok/s |
+| Qwen3 30B-A3B `Q4_K_M` | 18.6 GB | 22 GB | 51 tok/s |
 | Qwen3 32B `Q4_K_M` | 19.8 GB | 24 GB | — |
+| **Qwen3 30B-A3B `Q6_K`** | 25.1 GB | 27 GB | 47 tok/s |
 
 ### Which one should you use?
 
-**The 30B-A3B, or the biggest one your card will hold.**
+**Qwen3 30B-A3B Q6_K, if your card has the room. Otherwise the same model at Q4_K_M.**
 
-This is the opposite of the advice you normally get about large downloads, and it is not a
-close call. Below about 14B these models are not good enough for the work this app exists
-to do. They are fluent, they are fast, and they are wrong — confidently, and in ways you
-will not notice unless you check every line yourself, which is the work you were trying to
-avoid. What was tested and what happened is set out below.
+Those two are the same model at different levels of detail. The Q6_K keeps more of the
+original precision, and on this card that turns out to be nearly free: it is a third
+larger, but it **reads your documents 17% faster** and its answers are measurably closer
+to what the full-sized model would have said, for about 8% off the speed it writes at.
 
-It is also not a trade against speed. Only about 3B of the 30B-A3B's parameters are active
-at any moment, so it answers at 52 tokens a second — within a whisker of a 3B model, and
-two and a half times a dense 12B. You are not paying for quality in waiting.
+That is backwards from what you would expect, and it is worth knowing because the usual
+instinct — take the smaller file, it will be quicker — is wrong here. If the memory is
+sitting unused, spend it. The [technical explanation is in the backend
+repo](https://github.com/albanread/IntelMacLlamaCpp); the short version is that the
+smaller format has to do more unpacking work per byte, and this card has bytes to spare
+rather than arithmetic.
 
-**This is the reason a Vega II is worth having.** 32 GB of graphics memory is what lets a
-30B model sit on the card at all. On 8 GB you are stuck with the small ones, and the small
-ones are not the point.
+**Prefer the mixture-of-experts models** — the two 30B-A3B entries and the Gemma. Only a
+fraction of such a model is doing anything at any moment, so they answer about as fast as
+a model a tenth of the size while being far better. Both of the plain, dense models in the
+list are slower *and* weaker than the 30B-A3B that outweighs them.
 
-**The useful thing those numbers say:** on this card, the biggest download is also very
-nearly the fastest. Qwen3 30B-A3B runs at 51.9 tok/s — within a whisker of a 3B model —
-because only about 3B of its parameters are active per token. A dense 12B managed 20.6
-tok/s on the same card — less than half the speed for a third of the size. So the advice on a 32 GB card is not "pick something small to keep it
-quick"; it is "take the mixture-of-experts model, it is both the best and the fastest".
-The app orders the list by size but opens on the quickest model you already have that
-fits.
-
-A Gemma 3 12B was measured here too, and is deliberately not offered: it invented things
-in testing on this machine often enough to be untrustworthy for reading documents, which
-is most of what this app is for. Its speed figure is quoted above only because it is a
-useful measurement of the card.
-
-Gemma 4's 26B-A4B is the other mixture-of-experts option, and it is offered **only** as
-`unsloth/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL` — the quantisation-aware build. That is
-deliberate. The plain post-training-quantised build of the same model has noticeably
-higher perplexity and was found to invent things, so it is not in the list and should not
-be substituted in. QAT is trained with the four-bit rounding in the loop rather than
-having it applied afterwards, and on this model that is the difference between usable and
-not. It is also the smaller download of the two, at 14.2 GB against 16.9.
-
-Because the app times every reply anyway, your own measured rate replaces the table for
-any model you have actually used — which is the only figure that means anything on a card
-other than a Vega II.
+**This is what a Vega II buys you.** 32 GB of graphics memory is what lets a 30B model sit
+on the card at a decent quantisation. Nothing under about 14B is good enough for the work
+this app exists to do — that is not a hedge, it is what the testing showed, and it is why
+there is nothing smaller on the list any more.
 
 ### Bringing your own
 
@@ -101,15 +81,15 @@ If there is a small model you would like tested on this hardware,
 [raise an issue](https://github.com/albanread/MacProVegaIIChat/issues). We may eventually
 get around to it, and that is the whole of what we can promise.
 
-## How the models were tested
+## Why there is nothing small on the list
 
-These are **user tests, not benchmarks.** The question being asked was a narrow one: can
-you get away with a small model? They download in a couple of minutes instead of twenty,
+These were **user tests, not benchmarks.** The question was a narrow one: could you get
+away with a small model? They download in a couple of minutes instead of twenty,
 they fit on any card, and they are quick. If one of them could do the work, that would be
 worth knowing.
 
-So the small ones were put through this app the way somebody would actually use it, and
-the answers were read by hand. If you want perplexity
+So they were put through this app the way somebody would actually use it, and the answers
+were read by hand. None of them are on the list any more, and this is why. If you want perplexity
 figures, token throughput and the kernel work underneath, that is all in
 [IntelMacLlamaCpp](https://github.com/albanread/IntelMacLlamaCpp) — this page is about
 whether a model is any good to use.
