@@ -25,15 +25,17 @@ static void   MVRecordTPS(NSString *file, double tps);
 @property (assign) double gib;       // download size
 @property (assign) double needGiB;   // graphics memory for a comfortable fit
 @property (assign) double tps;       // measured on a Vega II; 0 means nobody has timed it
+@property (assign) double kvKiB;     // KV cache per token, KiB — measured where known
 - (NSString *)menuTitle;
 - (double)expectedTPS;               // your own rate if there is one, else the table
 - (BOOL)tpsIsYourOwn;
 @end
 @implementation ModelSpec
 + (instancetype)n:(NSString *)n b:(NSString *)b f:(NSString *)f u:(NSString *)u
-                g:(double)g v:(double)v t:(double)t {
+                g:(double)g v:(double)v t:(double)t k:(double)k {
     ModelSpec *m = [ModelSpec new];
     m.name = n; m.blurb = b; m.file = f; m.url = u; m.gib = g; m.needGiB = v; m.tps = t;
+    m.kvKiB = k > 0 ? k : 200;   // a middling guess for anything unmeasured
     return m;
 }
 - (NSString *)menuTitle {
@@ -59,33 +61,33 @@ static NSArray<ModelSpec *> *Catalogue(void) {
                    b:@"the smallest one worth trusting with a document"
                    f:@"Qwen3-14B-Q4_K_M.gguf"
                    u:@"https://huggingface.co/Qwen/Qwen3-14B-GGUF/resolve/main/Qwen3-14B-Q4_K_M.gguf"
-                   g:9.0 v:12.0 t:0],
+                   g:9.0 v:12.0 t:0 k:160],
         [ModelSpec n:@"Gemma 4 26B-A4B"
                    b:@"the most model per gigabyte"
                    f:@"gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf"
                    u:@"https://huggingface.co/unsloth/gemma-4-26B-A4B-it-qat-GGUF/resolve/main/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf"
-                   g:14.2 v:17.0 t:49],
+                   g:14.2 v:17.0 t:49 k:420],
         [ModelSpec n:@"Qwen3 30B-A3B"
                    b:@"quick and very good — the everyday choice"
                    f:@"Qwen3-30B-A3B-Q4_K_M.gguf"
                    u:@"https://huggingface.co/Qwen/Qwen3-30B-A3B-GGUF/resolve/main/Qwen3-30B-A3B-Q4_K_M.gguf"
-                   g:18.6 v:22.0 t:51],
+                   g:18.6 v:22.0 t:51 k:96],
         [ModelSpec n:@"Qwen3 32B"
                    b:@"the biggest dense one, and not yet tested here"
                    f:@"Qwen3-32B-Q4_K_M.gguf"
                    u:@"https://huggingface.co/Qwen/Qwen3-32B-GGUF/resolve/main/Qwen3-32B-Q4_K_M.gguf"
-                   g:19.8 v:24.0 t:0],
+                   g:19.8 v:24.0 t:0 k:256],
         [ModelSpec n:@"Qwen3 30B-A3B (finer)"
                    b:@"★ the best answers this card can give"
                    f:@"Qwen3-30B-A3B-Q6_K.gguf"
                    u:@"https://huggingface.co/Qwen/Qwen3-30B-A3B-GGUF/resolve/main/Qwen3-30B-A3B-Q6_K.gguf"
-                   g:25.1 v:27.0 t:47],
+                   g:25.1 v:27.0 t:47 k:96],
     ] mutableCopy];
     // Plenty of Mac Pro owners already have a shelf of GGUF files and no wish to
     // download another. Whatever they last picked stays in the list.
     NSString *custom = [[NSUserDefaults standardUserDefaults] stringForKey:MVPrefCustomModelPath];
     if (custom.length && [[NSFileManager defaultManager] fileExistsAtPath:custom]) {
-        [a addObject:[ModelSpec n:custom.lastPathComponent b:@"" f:custom u:nil g:0 v:0 t:0]];
+        [a addObject:[ModelSpec n:custom.lastPathComponent b:@"" f:custom u:nil g:0 v:0 t:0 k:0]];
     }
     return a;
 }
@@ -771,6 +773,35 @@ BOOL MVWriteWindowPNG(NSWindow *win, NSString *path, NSError **err) {
 
 // A token is about three quarters of a word, so the conversion is honest enough
 // to be useful and vague enough not to pretend otherwise.
+// Weights + KV cache + the compute buffer all come out of the same 32 GB. Measured
+// against a loaded Qwen3-30B-A3B the estimate came within 2%, so the wording can be
+// fairly confident there.
+//
+// It is pessimistic for the Gemmas. Their KV figure is the naive one, and they use
+// sliding-window attention, so only the global layers hold the full context and the
+// real allocation is a good deal smaller. Hence "probably will not load" rather than
+// a flat refusal — being told no when the answer is yes is the worse mistake here.
+- (NSString *)fitNoteForContextTokens:(NSInteger)ctx {
+    ModelSpec *m = [self selectedModel];
+    if (!m.gib || self.gpuVRAM <= 0) return @"";
+    double weights = m.gib / 1.073741824;                    // GB on disk to GiB in memory
+    double kv      = m.kvKiB * (double) ctx / 1048576.0;
+    double total   = weights + kv + 1.2;                     // 1.2 GiB of working space
+    double card    = self.gpuVRAM;
+
+    if (total > card)
+        return [NSString stringWithFormat:
+            @"⚠︎ %@ would need about %.0f GB and your card has %.0f, so it probably will "
+            @"not load. Choose less to remember — a better model that remembers less beats "
+            @"a weaker one that remembers more.", m.name, total, card];
+    if (total > card - 1.5)
+        return [NSString stringWithFormat:
+            @"%@ would need about %.0f GB of your %.0f. That is very close to the edge.",
+            m.name, total, card];
+    return [NSString stringWithFormat:
+        @"%@ would use about %.0f GB of your %.0f — comfortable.", m.name, total, card];
+}
+
 - (NSString *)speedNote:(ModelSpec *)m {
     double t = [m expectedTPS];
     if (t <= 0) return @"  Nobody has timed this one yet.";

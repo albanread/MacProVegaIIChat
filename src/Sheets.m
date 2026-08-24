@@ -83,6 +83,7 @@ static NSWindow *MVSheet(NSArray<NSView *> *rows, NSView *okBtn, NSView *cancelB
 @property (strong) NSPopUpButton *ctxPop, *replyPop;
 @property (strong) NSSegmentedControl *stylePick, *sizePick;
 @property (strong) NSButton *thinkBox, *showThinkBox, *autoStartBox;
+@property (strong) NSTextField *fitNote;
 @end
 
 static NSArray *MVCtxChoices(void)   { return @[@4096, @8192, @16384, @32768, @65536]; }
@@ -140,6 +141,11 @@ static void MVNote(NSGridView *g, NSString *text) {
         [self.ctxPop addItemWithTitle:[NSString stringWithFormat:@"About %ld pages of text  (%ldk)",
             (long) MAX(1, lround(n.integerValue / 650.0)), (long)(n.integerValue / 1024)]];
     [self.ctxPop selectItemAtIndex:MVNearest(MVCtxChoices(), MVContextTokens())];
+    self.ctxPop.target = self;
+    self.ctxPop.action = @selector(contextChanged:);
+    self.fitNote = MVLabel(@"", YES);
+    self.fitNote.maximumNumberOfLines = 4;
+    self.fitNote.preferredMaxLayoutWidth = 500;
 
     NSArray *replyNames = @[@"Brief — a paragraph or two",
                             @"Short — about half a page",
@@ -177,6 +183,12 @@ static void MVNote(NSGridView *g, NSString *text) {
     MVNote(g, @"How much of one conversation it can hold at once — your messages, its replies "
               @"and any document you have open, all together. More uses more of the graphics "
               @"card, and takes effect next time you press Start.");
+    {   // whether the chosen size actually fits, said before they find out the hard way
+        NSGridRow *r = [g addRowWithViews:@[self.fitNote]];
+        [r mergeCellsInRange:NSMakeRange(0, 2)];
+        [r cellAtIndex:0].xPlacement = NSGridCellPlacementLeading;
+        r.bottomPadding = 8;
+    }
 
     MVRow(g, @"Answers up to", self.replyPop);
     MVNote(g, @"A ceiling, not a target. Most answers are far shorter.");
@@ -195,9 +207,14 @@ static void MVNote(NSGridView *g, NSString *text) {
     MVNote(g, @"Applies to whatever is said next.");
 
     self.sheet = MVSheet(@[g], ok, cancel, 560);
+    [self contextChanged:nil];
     [parent beginSheet:self.sheet completionHandler:^(NSModalResponse r) {}];
 }
 
+- (void)contextChanged:(id)sender {
+    NSInteger ctx = [MVCtxChoices()[MAX(0, self.ctxPop.indexOfSelectedItem)] integerValue];
+    self.fitNote.stringValue = [(AppDelegate *)NSApp.delegate fitNoteForContextTokens:ctx];
+}
 - (void)close { [self.sheet.sheetParent endSheet:self.sheet]; }
 - (void)cancel:(id)s { [self close]; }
 - (void)save:(id)s {

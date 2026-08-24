@@ -204,6 +204,7 @@ typedef void (^MVDoneBlock)(NSString *text, NSString *errorMessage, NSDictionary
 - (NSString *)transcriptText;
 - (BOOL)selectModelNamed:(NSString *)name;
 - (NSString *)currentModelName;
+- (NSString *)fitNoteForContextTokens:(NSInteger)ctx;
 
 // Asks a question in the chat window exactly as if it had been typed.
 - (void)askQuestion:(NSString *)q completion:(void (^)(NSString *answer, NSString *err))done;
