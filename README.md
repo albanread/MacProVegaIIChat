@@ -262,6 +262,25 @@ launch if the best card it can find will not do.
   Markdown; the conversation itself is not restored on reopening.
 - Scanned PDFs with no text layer cannot be read — there is no OCR.
 
+## Something else worth knowing about
+
+**[ToshLLM](https://github.com/engeldlgado/toshllm)**, by Engelbert Delgado, is a nicer
+application than this one, and you should know it exists.
+
+It has been going longer and covers far more ground: a polished native app with proper
+model management, a fuller chat interface, and support for a much wider range of Macs and
+graphics cards than the single machine this was built for. It reaches places this work
+does not — flash attention on AMD, more than one GPU at once (which matters if you have a
+Vega II *Duo*), a compressed conversation memory, and better handling of large model files.
+
+It is also faster. On the same card, the same model file and the same settings, it reads a
+document more than three times as quickly — 615 tokens a second against 177 — and writes at
+much the same rate.
+
+So if what you want is a finished, flexible local AI for an Intel Mac, start there. This
+app exists because one particular machine was being written off; it does a handful of
+things and tries to do them well. ToshLLM does more, for more people.
+
 ## Building it
 
 See [BUILDING.md](BUILDING.md) if you want to compile it yourself. You do not need to —
